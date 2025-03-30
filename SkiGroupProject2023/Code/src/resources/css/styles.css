@@ -1,0 +1,42 @@
+
+body{
+    background-color: #151320;
+    height:100vh;
+    display: grid;
+    place-items: center center;
+    font-family: 'Poppins', sans-serif;
+    padding-top: 110px;
+}
+
+.centered{
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+
+.button {
+    background-color: #4CAF50; /* Green */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+}
+
+.text-nav{
+    font-family: "Courier New", Courier, monospace;
+    color: white
+}
+
+.video {
+    pointer-events: none;
+}
+
+.HTML-Embed {
+    pointer-events: none;
+}
