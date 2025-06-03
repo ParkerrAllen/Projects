@@ -4,9 +4,16 @@
 
 # Using Color Filtering with Blob Detection
 # Please do not collaborate on this assignment -- your code must be your own!
-
-# TODO: INSERT YOUR NAME HERE
-LAST_NAME = "mylastname"
+# This assignment was used with the assistangts of AI, and I used OpenAI’s ChatGPT (April 2025, GPT-4.0) to help me with the code.
+# I used this to help with debugging errors from my color detection.
+# The final implementation, testing, and understanding is my own.
+# Citation:
+# OpenAI. ChatGPT. "Debugging Python Blob Detection and Color Range Input Handling." 
+# April 22, 2025. https://chat.openai.com.
+# I added a match function to help pick what color you want and to help debug separate colors.
+#  TODO: INSERT YOUR NAME HERE
+FIRST_NAME = "Parker"
+LAST_NAME = "Allen"
 
 import pdb
 import pickle
@@ -59,7 +66,7 @@ def do_color_filtering(img):
   # For each pixel in the input image, check if it's within the range of allowable colors for your detector
   #     If it is: set the corresponding entry in your mask to 1
   #     Otherwise: set the corresponding entry in your mask to 0 (or do nothing, since it's initialized to 0)
-  # Return the mask image
+    # Return the mask image
   img_height = img.shape[0]
   img_width = img.shape[1]
 
@@ -70,6 +77,12 @@ def do_color_filtering(img):
   #       checking if its color is in a range we've specified using check_if_color_in_range
   # TIP: You'll need to index into 'mask' using (y,x) instead of (x,y) as you may be
   #      more familiar with, due to how the matrices are stored
+  for i in range(img_height):
+    for j in range(img_width):
+      if check_if_color_in_range(img[i,j]):
+        mask[i,j] = 1  
+      else:
+        mask[i,j] = 0
 
   return mask
 
@@ -87,7 +100,6 @@ def expand(img_mask, cur_coordinate, coordinates_in_blob):
     return
   if img_mask[cur_coordinate[0], cur_coordinate[1]] == 0.0: 
     return
-
   img_mask[cur_coordinate[0],cur_coordinate[1]] = 0
   coordinates_in_blob.append(cur_coordinate)
 
@@ -117,7 +129,20 @@ def expand_nr(img_mask, cur_coord, coordinates_in_blob):
     # TODO: Add this coordinate to 'coordinates_in_blob'
 
     # TODO: Add all neighboring coordinates (above, below, left, right) to coordinate_list to expand to them
-
+    if cur_coordinate[0]<0 or cur_coordinate[1]< 0 or cur_coordinate[0]>=img_mask.shape[0] or cur_coordinate[1]>=img_mask.shape[1]: 
+      continue
+    if img_mask[cur_coordinate[0],cur_coordinate[1]] == 0: 
+      continue
+    img_mask[cur_coordinate[0],cur_coordinate[1]] = 0
+    coordinates_in_blob.append(cur_coordinate)
+    a=[cur_coordinate[0]-1, cur_coordinate[1]]
+    b=[cur_coordinate[0]+1, cur_coordinate[1]]
+    l=[cur_coordinate[0], cur_coordinate[1]-1]
+    r=[cur_coordinate[0], cur_coordinate[1]+1]
+    coordinate_list.append(a)
+    coordinate_list.append(b)
+    coordinate_list.append(l)
+    coordinate_list.append(r)
   return coordinates_in_blob
 
 def get_blobs(img_mask):
@@ -139,12 +164,19 @@ def get_blobs(img_mask):
  
   # TODO: Copy image mask into local variable using copy.copy
   blobs_list = [] # List of all blobs, each element being a list of coordinates belonging to each blob
+  copy_m = copy.copy(img_mask)
+  for y in range(img_mask_height):
+    for x in range(img_mask_width):
+      if copy_m[y, x] == 1.0:
+        blob_coords = expand_nr(copy_m, [y, x], [])
+        blobs_list.append(blob_coords)
+
 
   # TODO: Iterate through all 'y' coordinates in img_mask
   #   TODO: Iterate through all 'x' coordinates in img_mask
   #     TODO: If mask value at [y,x] is 1, call expand_nr on copy of image mask and coordinate (y,x), giving a third argument of an empty list to populate with blob_coords.
   #     TODO: Add blob_coords to blobs_list
-
+  
 
   return blobs_list
 
@@ -160,15 +192,22 @@ def get_blob_centroids(blobs_list):
   #     Add that centroid (x,y) tuple to object_positions_list
   # Return object_positions_list and updated_blobs_list
   object_positions_list = []
+  u_b=[]
 
   # TODO: Implement blob centroid calculation
-  
-  return object_positions_list
+  for b in blobs_list:
+    if len(b) > 100:
+      object_positions_list.append(np.mean(b, axis=0))
+      u_b.append(b)
+    else:
+      continue
+  return object_positions_list, u_b
 
 def main():
   global img_height, img_width
   # Read in image using the imread function
-  img = cv2.imread('./lego-blob.png')
+  img = cv2.imread('C:/Users/yourm/Downloads/csci3302_hw3_base/lego-blob.png')
+  img_height, img_width = img.shape[:2]
   # Examples of adding color ranges: You'll need to find the right ones for isolating the lego blocks!
   
   # TODO: Add the color ranges for each block here!
@@ -177,7 +216,39 @@ def main():
   # add_color_range_to_detect([0,0,200], [0,0,255]) # Detect red
   # add_color_range_to_detect([0,200,0], [0,255,0]) # Detect green
   # add_color_range_to_detect([200,0,0], [255,0,0]) # Detect blue
-
+  try:
+    print("****************************************************************\n")
+    inp=input("Enter 1 for red, 2 for green, 3 for blue, 4 for yellow, 5 for \nred and green, 6 for blue and yellow, or 7 for all\n" \
+    "\n****************************************************************\n:")
+  except ValueError:
+    print("Invalid input. Detecting all colors as default.")
+    inp="7"
+  match inp:
+    case "1":
+      add_color_range_to_detect([0, 0, 150], [80, 80, 255])# Red
+    case "2":
+      add_color_range_to_detect([0, 150, 0], [80, 255, 80])#Green
+    case "3":
+      add_color_range_to_detect([150, 0, 0], [255, 80, 80])#Blue
+    case "4":
+      add_color_range_to_detect([0, 150, 150], [80, 255, 255])#Yellow
+    case "5":
+      add_color_range_to_detect([0, 0, 150], [80, 80, 255])# Red
+      add_color_range_to_detect([0, 150, 0], [80, 255, 80])#Green
+    case "6":
+      add_color_range_to_detect([150, 0, 0], [255, 80, 80])#Blue
+      add_color_range_to_detect([0, 150, 150], [80, 255, 255])#Yellow
+    case "7":
+      add_color_range_to_detect([0, 0, 150], [80, 80, 255])# Red
+      add_color_range_to_detect([0, 150, 0], [80, 255, 80])#Green
+      add_color_range_to_detect([150, 0, 0], [255, 80, 80])#Blue
+      add_color_range_to_detect([0, 150, 150], [80, 255, 255])#Yellow
+    case _:
+      print("Invalid input. Detecting all colors as default.")
+      add_color_range_to_detect([0, 0, 150], [80, 80, 255])# Red
+      add_color_range_to_detect([0, 150, 0], [80, 255, 80])#Green
+      add_color_range_to_detect([150, 0, 0], [255, 80, 80])#Blue
+      add_color_range_to_detect([0, 150, 150], [80, 255, 255])#Yellow
   ########## PART 1 ############
   # Create img_mask of all foreground pixels, where foreground is defined as passing the color filter
   img_mask = do_color_filtering(img)
@@ -193,7 +264,7 @@ def main():
   ########## PART 4 ############
   # Display images and blob annotations
   img_markup = img.copy()
-  for i,obj_pos in enumerate(object_positions_list):
+  for ind,obj_pos in enumerate(object_positions_list):
     obj_pos_vector = np.array(obj_pos).astype(np.int32) # In case your object positions weren't numpy arrays
     img_markup = cv2.circle(img_markup,(obj_pos_vector[1], obj_pos_vector[0]),5,(0,0,0),10) # plot centers of blob
     print("Object pos: " + str(obj_pos_vector))
@@ -201,7 +272,32 @@ def main():
     # TODO: Decide on a color for each blob
     # TODO: Find the (over-approximating) rectangle bounds for your blob
     # TODO: Plot your boxes and label your blobs (HINT: you might find cv2.rectangle() and cv2.putText() useful)
+    red = (0,0,255)
+    b=blobs[ind]
+    x=[]
+    y=[]
+    for a in b:
+      x.append(a[1])
+      y.append(a[0])
+    minx = min(x)
+    maxx = max(x)
+    miny = min(y)
+    maxy = max(y)
 
+    w=(maxx-minx)
+    h=(maxy-miny)
+    if w<h:
+      a=(h-w)//2
+      minx=max(0,min(x)-a)
+      maxx=min(img_width,max(x)+a)
+    elif w>h:
+      a=(w-h)//2
+      miny=max(0,min(y)-a)
+      maxy=min(img_height,max(y)+a)
+    tl = (minx, miny)
+    br = (maxx, maxy)
+    cv2.rectangle(img_markup, tl, br, (0,255,0), 2)
+    cv2.putText(img_markup, str(ind), (minx, miny - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, red, 2)
   # Display the original image, the mask, and the original image with object centers drawn on it
   # Objective: Show that your algorithm works by displaying the results!
   #
